@@ -14,7 +14,7 @@ public class HttpRequestUtils {
 
     public static String getUrl(String firstLine) {
         String[] splited = firstLine.split(" "); // header의 첫 번째 line을 " " 기준으로 split
-        String path = splited[1]; // header의 첫 번째 line 중 /index.html 추출
+        String path = splited[1]; // header의 첫 번째 line 중 /login.do 추출
         log.debug("request path: {}", path);
         return path;
     }

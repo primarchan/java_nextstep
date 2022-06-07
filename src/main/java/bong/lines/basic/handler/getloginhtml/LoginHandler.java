@@ -25,51 +25,42 @@ public class LoginHandler  extends Thread{
         log.debug("New Client Connect! Connected IP : {}, Port : {}, Host Address : {}", connection.getInetAddress(), connection.getPort(), connection.getInetAddress().getHostAddress());
 
         try(InputStream in = connection.getInputStream(); OutputStream out = connection.getOutputStream()) {
-
+            // InputStream => InputStreamReader => BufferedReader
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(in));
 
-            // String line = " ";
+            // header에서 line 단위로 전송되는 데이터 받기
             String line = bufferedReader.readLine();
-
-            String screenName = "loginform";
-
-            // byte[] body = null;
-            byte[] body = Objects.requireNonNull(
-                            IndexHTMLHandler.class
-                                    .getResourceAsStream("/templates/user/" + screenName + ".html"))
-                    .readAllBytes();
-
             log.info("line: {}", line);
-            log.info("body: {}", body);
+
+            // header가 null인 경우 받지 않음
+            if(line == null) {
+                return;
+            }
+
+            String screenName = line.split(" ")[1]
+                    .replace("/", "")
+                    .replace(".do" ,"");
 
             String url = HttpRequestUtils.getUrl(line);
             if(url.startsWith("/user/create")) {
                 int index = url.indexOf("?");
                 String queryString = url.substring(index + 1);
                 Map<String, String> params = HttpRequestUtils.parseQueryString(queryString);
-                LoginUserDto loginUserDto = new LoginUserDto(params.get("userId"), params.get("password"), params.get("name"), params.get("email"));
-                log.info("LoginUserDto: {}", loginUserDto);
+                LoginUserDto loginUserDto = new LoginUserDto(params.get("name"), params.get("email"), params.get("userId"), params.get("password"));
+                log.debug("LoginUserDto: {}", loginUserDto);
+                // url = "/index.html";
             }
 
-            /*
-            do {
-                line = bufferedReader.readLine();
-                if(line != null && line.contains("GET") && line.contains("loginform.do")){
-                    String screenName = line.split(" ")[1]
-                            .replace("/", "")
-                            .replace(".do" ,"");
-                    body = Objects.requireNonNull(
-                                    IndexHTMLHandler.class
-                                            .getResourceAsStream("/templates/user/" + screenName + ".html"))
-                            .readAllBytes();
-                }
-            } while (body == null);
-             */
-
             DataOutputStream dos = new DataOutputStream(out);
-            response200Header(dos, body.length);
-            responseBody(dos, body);
-        } catch (Exception exception){
+            if(line != null && line.contains("GET") && line.contains("loginform.do")){
+                byte[] body = Objects.requireNonNull(
+                                IndexHTMLHandler.class
+                                        .getResourceAsStream("/templates/user/" + screenName + ".html"))
+                        .readAllBytes();
+                response200Header(dos, body.length);
+                responseBody(dos, body);
+            }
+        }catch (Exception exception){
             log.error(exception.getMessage());
             exception.printStackTrace();
         }
