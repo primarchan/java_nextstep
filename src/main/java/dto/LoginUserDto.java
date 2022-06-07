@@ -6,11 +6,11 @@ public class LoginUserDto {
     private String userId;
     private String password;
 
-    public LoginUserDto(String userId, String password, String name, String email) {
+    public LoginUserDto(String userId, String email, String name, String password) {
         this.userId = userId;
-        this.password = password;
+        this.password = email;
         this.name = name;
-        this.email = email;
+        this.email = password;
     }
 
     public String getName() {
